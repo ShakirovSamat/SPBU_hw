@@ -5,6 +5,11 @@ namespace MatrixMultiplicationApp
 {
     class Program
     {
+        /// <summary>
+        /// gets matrix from user
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public static int[,] getMatrix(String message)
         {
             while (true)
@@ -22,10 +27,10 @@ namespace MatrixMultiplicationApp
                             Console.WriteLine("Wrong path. File doesn't exist");
                             break;
                         case FileIsEmptyException:
-                            Console.WriteLine("File is empty");
+                            Console.WriteLine("The file is empty");
                             break;
                         case NotAMatrixException:
-                            Console.WriteLine("File does't contatin the matrix");
+                            Console.WriteLine("The file doesn't contatin matrix");
                             break;
                         case BadMatrixElementException:
                             Console.WriteLine("Bad element in matrix. Matrix should contain only integers");
@@ -38,11 +43,19 @@ namespace MatrixMultiplicationApp
             }
         }
 
+        /// <summary>
+        ///     reads matrix consisting of integers from file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="FileIsEmptyException"></exception>
+        /// <exception cref="NotAMatrixException"></exception>
+        /// <exception cref="BadMatrixElementException"></exception>
         public static int[,] readMatrixFromFile(String path)
         {
             if (!File.Exists(path))
             {
-
                 throw new FileNotFoundException();
             }
 
@@ -76,14 +89,7 @@ namespace MatrixMultiplicationApp
                     }
                 }
             }
-            for (int i = 0; i < matrixHight; ++i)
-            {
-                for (int j = 0; j < matrixWidth; ++j)
-                {
-                    Console.Write(matrix[i, j] + " ");
-                }
-                Console.WriteLine();
-            }
+
             streamReader.Close();
             return matrix;
         }
@@ -102,8 +108,6 @@ namespace MatrixMultiplicationApp
 
             int[,] firstMatrix = getMatrix("Enter path to the first matrix: ");
             int[,] secondMatrix = getMatrix("Enter path to the second matrix: ");
-
-
         }
     }
 }
