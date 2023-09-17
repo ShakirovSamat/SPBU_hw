@@ -8,47 +8,6 @@ namespace MatrixMultiplication
         public int Width { private set; get; }
         public int Hight { private set; get; }
 
-        public Matrix(String path)
-        {
-            if (!File.Exists(path))
-            {
-                throw new FileNotFoundException();
-            }
-
-            StreamReader streamReader = new StreamReader(path);
-            String fileData = streamReader.ReadToEnd();
-            if (fileData.Length == 0)
-            {
-                streamReader.Close();
-                throw new FileIsEmptyException();
-            }
-
-            String[] matrixLines = fileData.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-            Hight = matrixLines.Length;
-            Width = matrixLines[0].Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Length;
-            MatrixTable = new int[Width, Hight];
-            for (int i = 0; i < Hight; ++i)
-            {
-                String[] numbers = matrixLines[i].Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                if (numbers.Length != Width)
-                {
-                    streamReader.Close();
-                    MatrixTable = null;
-                    throw new NotAMatrixException();
-                }
-
-                for (int j = 0; j < Width; ++j)
-                {
-                    if (!Int32.TryParse(numbers[j], out MatrixTable[i, j]))
-                    {
-                        streamReader.Close();
-                        MatrixTable = null;
-                        throw new BadMatrixElementException();
-                    }
-                }
-            }
-        }
-
         public Matrix(int width, int hight)
         {
             Width = width;
@@ -56,11 +15,33 @@ namespace MatrixMultiplication
             MatrixTable = new int[width, hight];
         }
 
-        public Matrix(int[,]? matrixTable)
+        public Matrix(String[,] array)
         {
-            MatrixTable = matrixTable;
-            Hight = matrixTable.GetLength(0);
-            Width = matrixTable.GetLength(1);
+            Hight = array.GetLength(0);
+            Width = array.GetLength(1);
+            MatrixTable = new int[Hight, Width];
+            for (int i = 0; i < Hight; ++i)
+            {
+                for (int j = 0; j < Width; j++)
+                {
+                    if (array[i, j] == String.Empty)
+                    {
+                        throw new NotAMatrixException();
+                    }
+
+                    if (!int.TryParse(array[i ,j], out MatrixTable[i, j]))
+                    {
+                        throw new BadMatrixElementException();
+                    }
+                }
+            }
+        }
+
+        public Matrix(int[,] array)
+        {
+            Hight = array.GetLength(0);
+            Width = array.GetLength(1);
+            MatrixTable = array;
         }
 
         public static void fillMatrix(Matrix matrix, int number)

@@ -1,56 +1,77 @@
 using MatrixMultiplication;
-using System.Diagnostics;
+using MatrixMultiplication.Exceptions;
 
 namespace MatrixMultiplicationTests
 {
     public class Tests
     {
-        Matrix matrix;
-        int n;
         [SetUp]
         public void Setup()
         {
-            matrix = new Matrix(500, 500);
-            Matrix.fillMatrix(matrix, 1);
-            n = 10;
         }
 
         [Test]
-        public void AvarageTimeOfParallelMultiplication()
+        public void NonMultiplicableMatricesTest()
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < n; ++i)
+            Matrix matrix1 = new Matrix(5, 5);
+            Matrix matrix2 = new Matrix(6, 6);
+            Assert.Throws<MatrixMultiplicationException>(() => Matrix.parallelMultiplicateMatrix(matrix1, matrix2));
+        }
+
+        [Test]
+        public void BadElementInMAtrixTest()
+        {
+            String[,] array = new String[,] { { "1", "5.5" }, { "1", "1" } };
+            Assert.Throws<BadMatrixElementException>(() => new Matrix(array));
+        }
+
+        [Test]
+        public void NotAMatrixTest()
+        {
+            String[,] array = new String[,] { { "1", String.Empty }, { "1", "1" } };
+            Assert.Throws<NotAMatrixException>(() => new Matrix(array));
+        }
+        [Test]
+        public void SimpleMatrixMultiplicationTest()
+        {
+            int[,] array = new int[,] { { 1, 1, 1 }, { 1, 1, 1 }, { 1, 1, 1 } };
+            Matrix matrix = new Matrix(array);
+            Matrix result = Matrix.parallelMultiplicateMatrix(matrix, matrix);
+            bool isRight = true;
+            for (int i = 0; i < result.Hight; ++i)
             {
-                Matrix.parallelMultiplicateMatrix(matrix, matrix);
+                for (int j = 0; j < result.Width; ++j)
+                {
+                    if (result.MatrixTable[i, j] != 3)
+                    {
+                        isRight = false; break;
+                    }
+                }
             }
-
-            sw.Stop();
-            TestContext.Out.WriteLine("Parallel multiplication time: " + sw.Elapsed.TotalSeconds / n);
-            Assert.Pass();
+            Assert.IsTrue(isRight);
         }
 
         [Test]
-        public void AvarageTimeOfSimplelMultiplication()
+        public void MatrixMultiolicationTest()
         {
-            Matrix.fillMatrix(matrix, 1);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < n; ++i)
+            int[,] array1 = new int[,] { { 1, 2, 3 }, { 1, 2, 3 }, { 1, 2, 3 } };
+            int[,] array2 = new int[,] { { 4, 5, 6 }, { 4, 5, 6 }, { 4, 5, 6 } };
+            Matrix matrix1 = new Matrix(array1);
+            Matrix matrix2 = new Matrix(array2);
+            Matrix result = Matrix.parallelMultiplicateMatrix(matrix1, matrix2);
+            int[,] expectedResult = new int[,] { { 24, 30, 36 }, { 24, 30, 36 }, { 24, 30, 36 } };
+            bool isRight = true;
+            for (int i = 0; i < result.Hight; ++i)
             {
-                Matrix.multiplicateMatrix(matrix, matrix);
+                for (int j = 0; j < result.Width; ++j)
+                {
+                    if (result.MatrixTable[i, j] != expectedResult[i, j])
+                    {
+                        isRight = false; break;
+                    }
+                }
             }
-
-            sw.Stop();
-            TestContext.Out.WriteLine("Simple multiplication time: " + sw.Elapsed.TotalSeconds / n);
-            Assert.Pass();
+            Assert.IsTrue(isRight);
         }
-
-        [Test]
-        public void ExpectedValueTest()
-        {
-
-        }
-    
     }
 }
