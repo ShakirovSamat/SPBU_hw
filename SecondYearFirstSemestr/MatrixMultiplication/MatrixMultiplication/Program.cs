@@ -1,4 +1,5 @@
-﻿using MatrixMultiplication;
+﻿using BenchmarkDotNet.Running;
+using MatrixMultiplication;
 using MatrixMultiplication.Exceptions;
 using System.IO;
 using System.Net.Http.Headers;
@@ -74,6 +75,7 @@ namespace MatrixMultiplicationApp
 
         public static void Main(String[] args)
         {
+            var summary = BenchmarkRunner.Run<Benchmark>();
             Console.WriteLine("*****Matrix Multiplication Application*****");
             Console.WriteLine("This program multiplicates two array");
 

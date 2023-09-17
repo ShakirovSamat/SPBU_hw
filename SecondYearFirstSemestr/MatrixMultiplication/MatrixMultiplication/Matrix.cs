@@ -1,4 +1,5 @@
-﻿using MatrixMultiplication.Exceptions;
+﻿using BenchmarkDotNet.Attributes;
+using MatrixMultiplication.Exceptions;
 
 namespace MatrixMultiplication
 {
@@ -57,6 +58,7 @@ namespace MatrixMultiplication
             }
         }
 
+        [Benchmark]
         /// <summary>
         /// multiplicates two matrices
         /// </summary>
