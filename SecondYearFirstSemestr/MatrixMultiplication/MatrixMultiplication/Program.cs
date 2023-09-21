@@ -9,15 +9,14 @@ namespace MatrixMultiplicationApp
     class Program
     {
         /// <summary>
-        /// gets array from user
+        /// gets two dementional array from user
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public static String[,] getTwoDementionalArrayFromFile(String message)
+        public static String[,] getTwoDementionalArrayFromFile()
         {
             while (true)
             {
-                Console.Write(message);
                 try
                 {
                     String path = Console.ReadLine();
@@ -54,19 +53,19 @@ namespace MatrixMultiplicationApp
                     switch (e)
                     {
                         case FileNotFoundException:
-                            Console.WriteLine("Wrong path. File doesn't exist");
+                            Console.WriteLine("Wrong path. File doesn't exist. Try enter matrix again: ");
                             break;
                         case FileIsEmptyException:
-                            Console.WriteLine("The file is empty");
+                            Console.WriteLine("The file is empty. Try enter matrix again: ");
                             break;
                         case NotAMatrixException:
-                            Console.WriteLine("The file doesn't contatin array");
+                            Console.WriteLine("The file doesn't contatin array. Try enter matrix again: ");
                             break;
                         case BadMatrixElementException:
-                            Console.WriteLine("Bad element in array. Matrix should contain only integers");
+                            Console.WriteLine("Bad element in array. Matrix should contain only integers. Try enter matrix again: ");
                             break;
                         default:
-                            Console.WriteLine("Bad input");
+                            Console.WriteLine("Bad input. Try enter matrix again: ");
                             break;
                     }
                 }
@@ -79,8 +78,11 @@ namespace MatrixMultiplicationApp
             Console.WriteLine("*****Matrix Multiplication Application*****");
             Console.WriteLine("This program multiplicates two array");
 
-            var firstTwoDementionalArray = getTwoDementionalArrayFromFile("Enter path to the first array: ");
-            var secondTwoDementionalArray = getTwoDementionalArrayFromFile("Enter path to the second array: ");
+            Console.WriteLine("Enter path to the first array: ");
+            var firstTwoDementionalArray = getTwoDementionalArrayFromFile();
+
+            Console.WriteLine("Enter path to the second array: ");
+            var secondTwoDementionalArray = getTwoDementionalArrayFromFile();
 
             var firstMatrix = new Matrix(firstTwoDementionalArray);
             var secondMatrix = new Matrix(secondTwoDementionalArray);
@@ -93,9 +95,12 @@ namespace MatrixMultiplicationApp
             {
                 Console.Write("Enter name of the saving file: ");
                 var name = Console.ReadLine().Trim();
+                if (name == null) continue;
+                
                 try
                 {
                     Matrix.writeMatrixToFile(multiplicatedMatrix, path + "\\" + name + ".txt");
+                    Console.WriteLine("The file have been created and saved");
                     break;
                 }
                 catch (FileAlreadyExistException)

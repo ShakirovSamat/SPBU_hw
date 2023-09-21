@@ -5,11 +5,6 @@ namespace MatrixMultiplicationTests
 {
     public class Tests
     {
-        [SetUp]
-        public void Setup()
-        {
-        }
-
         [Test]
         public void NonMultiplicableMatricesTest()
         {
@@ -42,13 +37,9 @@ namespace MatrixMultiplicationTests
             {
                 for (int j = 0; j < result.Width; ++j)
                 {
-                    if (result.MatrixTable[i, j] != 3)
-                    {
-                        isRight = false; break;
-                    }
+                    Assert.AreEqual(result.MatrixTable[i, j], 3);
                 }
             }
-            Assert.IsTrue(isRight);
         }
 
         [Test]
@@ -65,13 +56,9 @@ namespace MatrixMultiplicationTests
             {
                 for (int j = 0; j < result.Width; ++j)
                 {
-                    if (result.MatrixTable[i, j] != expectedResult[i, j])
-                    {
-                        isRight = false; break;
-                    }
+                    Assert.AreEqual(result.MatrixTable[i, j], expectedResult[i, j]);
                 }
             }
-            Assert.IsTrue(isRight);
         }
     }
 }

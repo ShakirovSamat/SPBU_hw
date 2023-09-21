@@ -30,7 +30,7 @@ namespace MatrixMultiplication
                         throw new NotAMatrixException();
                     }
 
-                    if (!int.TryParse(array[i ,j], out MatrixTable[i, j]))
+                    if (!int.TryParse(array[i, j], out MatrixTable[i, j]))
                     {
                         throw new BadMatrixElementException();
                     }
@@ -45,6 +45,11 @@ namespace MatrixMultiplication
             MatrixTable = array;
         }
 
+        /// <summary>
+        /// fills the matrix with a number
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="number"></param>
         public static void fillMatrix(Matrix matrix, int number)
         {
             if (matrix == null || matrix.MatrixTable == null) return;
@@ -60,7 +65,7 @@ namespace MatrixMultiplication
 
         [Benchmark]
         /// <summary>
-        /// multiplicates two matrices
+        /// multiplicates two matrices by parallel algorithm
         /// </summary>
         /// <param name="firstMatrix"></param>
         /// <param name="secondMatrix"></param>
@@ -73,24 +78,51 @@ namespace MatrixMultiplication
             if (firstMatrix.Width != secondMatrix.Hight) throw new MatrixMultiplicationException();
 
             var multiplicatedMatrix = new int[firstMatrix.Hight, secondMatrix.Width];
-            var threads = new Thread[firstMatrix.Hight];
-            for (int i = 0; i < firstMatrix.Hight; ++i)
+
+            var threads = new Thread[Environment.ProcessorCount + 1];
+            int linesForEachThread = firstMatrix.Hight / Environment.ProcessorCount;
+            int rest = firstMatrix.Hight % Environment.ProcessorCount;
+
+            for (int i = 0; i < threads.Length - 1; ++i)
             {
-                var localI = i;
+                int localI = i;
                 threads[i] = new Thread(() =>
                 {
-                    for (int j = 0; j < secondMatrix.Width; ++j)
+                    for (int j = linesForEachThread * localI; j < linesForEachThread * (localI + 1); ++j)
                     {
-                        for (int b = 0; b < firstMatrix.Width; ++b)
+                        for (int a = 0; a < secondMatrix.Width; ++a)
                         {
-                            int element = firstMatrix.MatrixTable[localI, b];
-                            element *= secondMatrix.MatrixTable[b, j];
-                            multiplicatedMatrix[localI, j] += element;
+                            for (int b = 0; b < firstMatrix.Width; ++b)
+                            {
+                                int element = firstMatrix.MatrixTable[j, b];
+                                element *= secondMatrix.MatrixTable[b, a];
+                                multiplicatedMatrix[j, a] = element;
+                            }
                         }
+
                     }
                 });
-                threads[i].Priority = ThreadPriority.Highest;
+
+                threads[threads.Length - 1] = new Thread(() =>
+                {
+                    for (int j = linesForEachThread * 12; j < linesForEachThread * 12 + rest; ++j)
+                    {
+                        for (int a = 0; a < secondMatrix.Width; ++a)
+                        {
+                            for (int b = 0; b < firstMatrix.Width; ++b)
+                            {
+                                int element = firstMatrix.MatrixTable[j, b];
+                                element *= secondMatrix.MatrixTable[b, a];
+                                multiplicatedMatrix[j, a] += element;
+                            }
+                        }
+
+                    }
+                });
             }
+
+
+
             foreach (var thread in threads)
             {
                 thread.Start();
@@ -156,7 +188,6 @@ namespace MatrixMultiplication
                 writer.Write("\n");
             }
             writer.Close();
-            Console.WriteLine("The file have been created and saved");
         }
     }
 }
