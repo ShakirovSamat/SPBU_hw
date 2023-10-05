@@ -16,6 +16,7 @@ namespace ThreadPool
             var task2 = task.ContinueWith((int restult) => restult * 5);
             Console.WriteLine(task.Result);
             Console.WriteLine(task2.Result);
+            pool.ShutDown();
         }
     }
 

@@ -86,7 +86,7 @@ namespace ThreadPool
                         action();
                         IsWorking = false;
                     }
-                    else if (actions.IsCompleted)
+                    else if (token.IsCancellationRequested)
                     {
                         break;
                     }
