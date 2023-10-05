@@ -27,7 +27,7 @@ namespace ThreadPool
         /// <returns></returns>
         public IMyTask<TResult> AddTask<TResult>(Func<TResult> func)
         {
-            var task = new MyTask<TResult>(func);
+            var task = new MyTask<TResult>(func, tasks);
             tasks.Add(() => task.Start(tasks));
             return task;
         }
@@ -100,7 +100,9 @@ namespace ThreadPool
         {
             private Exception exception;
             private TResult result;
+            private BlockingCollection<Action> tasks; 
             private ManualResetEvent resetEvent = new ManualResetEvent(false);
+            private BlockingCollection<Action> newTasks;
 
             public bool IsComplited { get; private set; }
 
@@ -121,10 +123,12 @@ namespace ThreadPool
 
             public Func<TResult> Func { get; }
 
-            public MyTask(Func<TResult> func)
+            public MyTask(Func<TResult> func, BlockingCollection<Action> tasks)
             {
                 IsComplited = false;
                 Func = func;
+                this.tasks = tasks;
+                newTasks = new BlockingCollection<Action>();
             }
 
             /// <summary>
@@ -144,11 +148,31 @@ namespace ThreadPool
 
                 IsComplited = true;
                 resetEvent.Set();
+                newTasks.CompleteAdding();
+                foreach (var task in newTasks)
+                {
+                    tasks.Add(task);
+                }
             }
 
-            public IMyTask<TResult> ContinueWith(Func<TResult, TResult> func)
+            /// <summary>
+            /// using the result of the current task calculates func<Tresult, Tresult> and returns a new task
+            /// </summary>
+            /// <param name="func"></param>
+            /// <returns></returns>
+            public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> func)
             {
-                throw new NotImplementedException();
+                var task = new MyTask<TNewResult>(() => func(Result), tasks);
+                if (IsComplited)
+                {
+                    tasks.Add(() => task.Start(tasks));
+                }
+                else
+                {
+                    newTasks.Add(() => task.Start(tasks));
+                }
+
+                return task;
             }
         }
     }

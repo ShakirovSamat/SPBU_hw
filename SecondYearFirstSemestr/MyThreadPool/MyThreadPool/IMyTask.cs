@@ -8,7 +8,7 @@
 
         public Func<TResult> Func { get; }
 
-        public IMyTask<TResult> ContinueWith(Func<TResult, TResult> func);
+        public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> func);
 
 
     }
