@@ -135,4 +135,4 @@ _NCrunch*
 bin/
 obj/
 *.xml
-.vs/
+**/.vs
