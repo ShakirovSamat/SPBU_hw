@@ -28,7 +28,7 @@ namespace ThreadPool
         public IMyTask<TResult> AddTask<TResult>(Func<TResult> func)
         {
             var task = new MyTask<TResult>(func, tasks);
-            tasks.Add(() => task.Start(tasks));
+            tasks.Add(() => task.Start());
             return task;
         }
 
@@ -55,9 +55,9 @@ namespace ThreadPool
             public MyThread(BlockingCollection<Action> actions, CancellationToken token)
             {
                 this.token = token;
+                this.actions = actions;
                 thread = new Thread(() => this.Start());
                 thread.Start();
-                this.actions = actions;
             }
 
             /// <summary>
@@ -75,20 +75,20 @@ namespace ThreadPool
             {
                 while (true)
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        actions.CompleteAdding();
-                    }
-
                     if (actions.TryTake(out var action))
                     {
                         IsWorking = true;
                         action();
                         IsWorking = false;
                     }
-                    else if (token.IsCancellationRequested)
+                    else if (actions.IsCompleted)
                     {
                         break;
+                    }
+
+                    if (token.IsCancellationRequested)
+                    {
+                        actions.CompleteAdding();
                     }
                 }
             }
@@ -100,9 +100,10 @@ namespace ThreadPool
         {
             private Exception exception;
             private TResult result;
-            private BlockingCollection<Action> tasks; 
+            private BlockingCollection<Action> tasks;
             private ManualResetEvent resetEvent = new ManualResetEvent(false);
             private BlockingCollection<Action> newTasks;
+            private CancellationToken token;
 
             public bool IsComplited { get; private set; }
 
@@ -135,7 +136,7 @@ namespace ThreadPool
             /// puts the task to work
             /// </summary>
             /// <param name="actions"></param>
-            public void Start(BlockingCollection<Action> actions)
+            public void Start()
             {
                 try
                 {
@@ -149,9 +150,13 @@ namespace ThreadPool
                 IsComplited = true;
                 resetEvent.Set();
                 newTasks.CompleteAdding();
-                foreach (var task in newTasks)
+
+                if (!tasks.IsCompleted)
                 {
-                    tasks.Add(task);
+                    foreach (var task in newTasks)
+                    {
+                        tasks.Add(task);
+                    }
                 }
             }
 
@@ -165,11 +170,11 @@ namespace ThreadPool
                 var task = new MyTask<TNewResult>(() => func(Result), tasks);
                 if (IsComplited)
                 {
-                    tasks.Add(() => task.Start(tasks));
+                    tasks.Add(() => task.Start());
                 }
                 else
                 {
-                    newTasks.Add(() => task.Start(tasks));
+                    newTasks.Add(() => task.Start());
                 }
 
                 return task;
