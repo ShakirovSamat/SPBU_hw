@@ -73,6 +73,7 @@ namespace MatrixMultiplicationApp
 
         public static void Main(String[] args)
         {
+            //var summary = BenchmarkRunner.Run<Benchmark>(); to ran benchmark tests you should delte the uncomment this line
             Console.WriteLine("*****Matrix Multiplication Application*****");
             Console.WriteLine("This program multiplicates two array");
 
