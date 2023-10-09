@@ -11,7 +11,6 @@ namespace MatrixMultiplicationApp
         /// <summary>
         /// gets two dementional array from user
         /// </summary>
-        /// <param name="message"></param>
         /// <returns></returns>
         public static String[,] getTwoDementionalArrayFromFile()
         {
@@ -74,7 +73,6 @@ namespace MatrixMultiplicationApp
 
         public static void Main(String[] args)
         {
-            var summary = BenchmarkRunner.Run<Benchmark>();
             Console.WriteLine("*****Matrix Multiplication Application*****");
             Console.WriteLine("This program multiplicates two array");
 
