@@ -11,6 +11,6 @@
         /// Other calls return the same object as the first without recalculations
         /// </summary>
         /// <returns></returns>
-        public T Get();
+        public T? Get();
     }
 }

@@ -23,18 +23,20 @@ namespace Lazy
             }
         }
 
-        private Func<T> supplier;
+        private Func<T?>? supplier;
         private bool isCalculated;
-        private Value? value;
-        private object lockObject = "st";
+        private volatile Value? value;
+        private Exception? exception;
+        private object lockObject = new();
 
         public ParallelLazy(Func<T> func)
         {
             supplier = func;
             isCalculated = false;
+            exception = null;
         }
 
-        public T Get()
+        public T? Get()
         {
             if (!isCalculated)
             {
@@ -42,12 +44,26 @@ namespace Lazy
                 {
                     if (!isCalculated)
                     {
-                        Volatile.Write(ref value, new Value(supplier()));
+                        try
+                        {
+                            value = new Value(supplier());
+                        }
+                        catch (Exception ex)
+                        {
+                            exception = ex;
+                        }
                         isCalculated = true;
+                        supplier = null;
                     }
                 }
             }
-            return Volatile.Read(ref value)!.Get();
+
+            if (exception != null)
+            {
+                throw exception;
+            }
+
+            return value.Get();
         }
     }
 }
