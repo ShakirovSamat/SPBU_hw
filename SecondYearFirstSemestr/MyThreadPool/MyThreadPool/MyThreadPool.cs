@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using ThreadPool.Exceptions;
+using System.Collections.Concurrent;
 
 namespace ThreadPool
 {
@@ -27,14 +28,19 @@ namespace ThreadPool
         /// <returns></returns>
         public IMyTask<TResult> AddTask<TResult>(Func<TResult> func)
         {
-            var task = new MyTask<TResult>(func, tasks);
+            if (cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                throw new ShutDownedException();
+            }
+
+            var task = new MyTask<TResult>(func, tasks, cancellationTokenSource.Token);
             tasks.Add(() => task.Start());
             return task;
         }
 
         /// <summary>
         /// blocks adding new tasks,
-        /// waits waits until all already assigned tasks are completed and closes the threads
+        /// waits until all already assigned tasks are completed and closes the threads
         /// </summary>
         public void ShutDown()
         {
@@ -81,14 +87,9 @@ namespace ThreadPool
                         action();
                         IsWorking = false;
                     }
-                    else if (actions.IsCompleted)
+                    else if (token.IsCancellationRequested)
                     {
                         break;
-                    }
-
-                    if (token.IsCancellationRequested)
-                    {
-                        actions.CompleteAdding();
                     }
                 }
             }
@@ -96,16 +97,17 @@ namespace ThreadPool
             public bool IsWorking { get; set; }
         }
 
+
         private class MyTask<TResult> : IMyTask<TResult>
         {
             private Exception exception;
             private TResult result;
             private BlockingCollection<Action> tasks;
             private ManualResetEvent resetEvent = new ManualResetEvent(false);
-            private BlockingCollection<Action> newTasks;
+            private BlockingCollection<Action> continuedTaks;
             private CancellationToken token;
 
-            public bool IsComplited { get; private set; }
+            public bool IsCompleted { get; private set; }
 
             public TResult Result
             {
@@ -124,12 +126,13 @@ namespace ThreadPool
 
             public Func<TResult> Func { get; }
 
-            public MyTask(Func<TResult> func, BlockingCollection<Action> tasks)
+            public MyTask(Func<TResult> func, BlockingCollection<Action> tasks, CancellationToken token)
             {
-                IsComplited = false;
+                IsCompleted = false;
                 Func = func;
                 this.tasks = tasks;
-                newTasks = new BlockingCollection<Action>();
+                continuedTaks = new BlockingCollection<Action>();
+                this.token = token;
             }
 
             /// <summary>
@@ -147,16 +150,12 @@ namespace ThreadPool
                     exception = ex;
                 }
 
-                IsComplited = true;
+                IsCompleted = true;
                 resetEvent.Set();
-                newTasks.CompleteAdding();
 
-                if (!tasks.IsCompleted)
+                foreach (var continuedTask in continuedTaks)
                 {
-                    foreach (var task in newTasks)
-                    {
-                        tasks.Add(task);
-                    }
+                    tasks.Add(continuedTask);
                 }
             }
 
@@ -167,16 +166,19 @@ namespace ThreadPool
             /// <returns></returns>
             public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> func)
             {
-                var task = new MyTask<TNewResult>(() => func(Result), tasks);
-                if (IsComplited)
+                if (token.IsCancellationRequested)
                 {
-                    tasks.Add(() => task.Start());
-                }
-                else
-                {
-                    newTasks.Add(() => task.Start());
+                    throw new ShutDownedException();
                 }
 
+                var task = new MyTask<TNewResult>(() => func(Result), tasks, token);
+                if (IsCompleted)
+                {
+                    tasks.Add(() => task.Start());
+                    return task;
+                }
+
+                continuedTaks.Add(() => task.Start());
                 return task;
             }
         }
