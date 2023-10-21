@@ -8,6 +8,7 @@ namespace SimpleFTP
         {
             Server server;
             Client client;
+            Console.WriteLine(Directory.GetCurrentDirectory());
             while (true)
             {
                 Console.Write("Введите локальный адресс сервера: ");

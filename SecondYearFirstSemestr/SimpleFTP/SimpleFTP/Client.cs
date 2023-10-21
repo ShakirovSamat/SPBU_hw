@@ -3,7 +3,7 @@ using System.Text;
 
 namespace SimpleFTP
 {
-    class Client
+    public class Client
     {
         TcpClient? client;
         NetworkStream stream;
