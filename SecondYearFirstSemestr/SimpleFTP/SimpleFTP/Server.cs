@@ -30,40 +30,7 @@ namespace SimpleFTP
             while (true)
             {
                 tcpClient = await tcpListener.AcceptTcpClientAsync();
-                stream = tcpClient.GetStream();
-
-                var buffer = new List<byte>();
-                int byteReaded = 10;
-
-                bool isProcessing = true;
-                while (isProcessing)
-                {
-                    while ((byteReaded = stream.ReadByte()) != '\n')
-                    {
-                        buffer.Add((byte)(byteReaded));
-                    }
-
-                    var message = Encoding.UTF8.GetString(buffer.ToArray());
-                    buffer.Clear();
-
-                    String[] request = message.Split(" ");
-                    switch (request[0])
-                    {
-                        case "List":
-                            ResponseToListRequest(request[1]);
-                            break;
-                        case "Get":
-                            ResponseToGetRequest(request[1]);
-                            break;
-                        case "END":
-                            isProcessing = false;
-                            break;
-                        case "":
-                            break;
-                        default:
-                            throw new Exception();
-                    }
-                }
+                Task.Run(async ()=> await ParallelRequestsProcessing(tcpClient));              
             }
         }
 
@@ -112,6 +79,44 @@ namespace SimpleFTP
             response.Append(streamReader.ReadToEnd());
             streamReader.Close();
             await stream.WriteAsync(Encoding.UTF8.GetBytes(response.ToString()));
+        }
+
+        private async Task ParallelRequestsProcessing(TcpClient tcpClient)
+        {
+             stream = tcpClient.GetStream();
+
+                var buffer = new List<byte>();
+                int byteReaded = 10;
+
+                bool isProcessing = true;
+                while (isProcessing)
+                {
+                    while ((byteReaded = stream.ReadByte()) != '\n')
+                    {
+                        buffer.Add((byte)(byteReaded));
+                    }
+
+                    var message = Encoding.UTF8.GetString(buffer.ToArray());
+                    buffer.Clear();
+
+                    String[] request = message.Split(" ");
+                    switch (request[0])
+                    {
+                        case "List":
+                            ResponseToListRequest(request[1]);
+                            break;
+                        case "Get":
+                            ResponseToGetRequest(request[1]);
+                            break;
+                        case "END":
+                            isProcessing = false;
+                            break;
+                        case "":
+                            break;
+                        default:
+                            throw new Exception();
+                    }
+                }
         }
 
 
