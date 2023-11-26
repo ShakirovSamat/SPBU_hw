@@ -7,14 +7,14 @@ class Program
 		string path = string.Empty;
 		while (true)
 		{
-			Console.WriteLine("Введите полный путь папки, в которой хранятся сборки");
+			Console.WriteLine("Введите полный путь папки, в которой хранятся сборки.");
 			path = Console.ReadLine();
 			if (Directory.Exists(path))
 			{
 				break;
 			}
 
-			Console.WriteLine("Папка не существет. Попробуйте ввести другой путь");
+			Console.WriteLine("Папка не существет. Попробуйте ввести другой путь.");
 		}
 
 		string[] paths = Directory.GetFiles(path, "*.dll");
