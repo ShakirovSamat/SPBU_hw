@@ -5,6 +5,7 @@ namespace MyNUnit.Information
 	public class MethodInformation
 	{
 		public string Name { get; set; }
+
 		public long Time { get; set; }
 
 		public string Message { get; set; }
@@ -13,13 +14,16 @@ namespace MyNUnit.Information
 
 		public Exception? Exception { get; set; }
 
-		public MethodInformation(string name, long time, string message, bool succeed, Exception exception = null)
+		public string? Ignore { get; set; }
+
+		public MethodInformation(string name, long time, string message, bool succeed, Exception exception = null, string? ignore = "")
 		{
 			Name = name;
 			Time = time;
 			Message = message;
 			Succeed = succeed;
 			Exception = exception;
+			Ignore = ignore;
 		}
 
 		public override string ToString()

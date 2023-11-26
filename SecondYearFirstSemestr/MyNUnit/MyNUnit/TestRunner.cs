@@ -1,12 +1,21 @@
 ﻿using MyNUnit.Attributes;
 using MyNUnit.Information;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace MyNUnit
 {
-    public static class TestRunner
+	public enum TargetAttributes
+	{
+		Test,
+		Before,
+		After,
+		BeforeClass,
+		AfterClass,
+		Undefiend,
+	}
+
+	public static class TestRunner
 	{
 		public static List<MethodInformation> Results = new List<MethodInformation>();
 		public static async Task<AssemblyInformation> RunTests(Assembly assembly)
@@ -25,6 +34,7 @@ namespace MyNUnit
 			{
 				result.classInformations.Add(await task);
 			}
+
 			return result;
 		}
 
@@ -57,7 +67,7 @@ namespace MyNUnit
 			{
 				if (testMethod.Ignore != null)
 				{
-					result.methodInformations.Add(new MethodInformation(testMethod.method.Name, 0, "Was ignored. Ignore message: " + testMethod.Ignore, true));
+					result.methodInformations.Add(new MethodInformation(testMethod.method.Name, 0, "Was ignored. Ignore message: " + testMethod.Ignore, true, null, testMethod.Ignore));
 				}
 				else
 				{
@@ -135,7 +145,8 @@ namespace MyNUnit
 						
 				}
 			}
-			if (methodInfo != null)
+
+			if (methodInformation == null)
 			{
 				methodInformation = new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "Succeed", true);
 			}
@@ -159,21 +170,17 @@ namespace MyNUnit
 			return false;
 		}
 	}
-	public enum TargetAttributes
-	{
-		Test,
-		Before,
-		After,
-		BeforeClass,
-		AfterClass,
-		Undefiend,
-	}
+
 	public class MethodsStorage
 	{
 		public List<(MethodInfo method, Type? expected, string? Ignore)> TestMethods { get; set; }
+
 		public List<MethodInfo> BeforerMethods { get; set; }
+
 		public List<MethodInfo> AfterMethods { get; set; }
+
 		public List<MethodInfo> BeforeClassMethods { get; set; }
+
 		public List<MethodInfo> AfterClassMethods { get; set; }
 
 		public MethodsStorage()

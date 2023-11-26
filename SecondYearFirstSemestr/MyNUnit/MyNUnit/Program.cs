@@ -16,12 +16,12 @@ class Program
 
 			Console.WriteLine("Папка не существет. Попробуйте ввести другой путь");
 		}
+
 		string[] paths = Directory.GetFiles(path, "*.dll");
 		foreach(var pathh in paths)
 		{
 			var result = TestRunner.RunTests(Assembly.LoadFrom(pathh)).Result;
 			Console.WriteLine(result.ToString());
         }
-
 	}
 }
