@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MyNUnit.Attributes
+﻿namespace MyNUnit.Attributes
 {
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public class BeforeAttribute: Attribute
