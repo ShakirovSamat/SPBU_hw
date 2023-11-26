@@ -1,6 +1,6 @@
 ﻿namespace MyNUnit.Attributes
 {
-	[AttributeUsage(AttributeTargets.Method, Inherited = false]
+	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public class AfterAttribute: Attribute
 	{
 	}

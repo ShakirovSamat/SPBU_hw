@@ -1,31 +1,36 @@
-﻿using MyNUnit.Attributes;
+﻿using MyNUnit;
 using System.Reflection;
 class Program
 {
 	public static void Main(String[] args)
 	{
-		Console.WriteLine("Введите полный к папке, в которой хранятся сбоки");
-		string path = Console.ReadLine();
-
-		var  assembliesPaths = Directory.GetFiles(path, "*.dll");
-
-		foreach ( var assemblyPath in assembliesPaths)
+		string path = string.Empty;
+		while (true)
 		{
-			var assembly = Assembly.LoadFrom(assemblyPath);
-			foreach(Type t in assembly.ExportedTypes)
+			Console.WriteLine("Введите полный путь папки, в которой хранятся сборки");
+			path = Console.ReadLine();
+			if (Directory.Exists(path))
 			{
-				foreach( MethodInfo t2 in t.GetMethods())
-				{
-					object[] attr = t2.GetCustomAttributes(false);
-					foreach (Attribute atr in attr)
-					{
-                        if (atr is TestAttribute testAttribute)
-						{
-                            Console.WriteLine(testAttribute.Ignore);
-                        }
-                    }
-                }
+				break;
 			}
+
+			Console.WriteLine("Папка не существет. Попробуйте ввести другой путь");
 		}
+		string[] paths = Directory.GetFiles(path, "*.dll");
+		foreach(var pathh in paths)
+		{
+			var result = TestRunner.RunTests(Assembly.LoadFrom(pathh));
+            Console.WriteLine(result.Name);
+            foreach (var res in result.classInformations)
+			{
+                Console.WriteLine($"\t{res.Name}");
+				foreach(var method in res.methodInformations)
+				{
+				Console.WriteLine($"\t\tMemthod {method.Name}:\n\t\t\ttime: {method.Time}\n\t\t\tmesesage: {method.Message}" +
+					$"\n\t\t\texception: {method.Exception?.ToString()}\n\n");
+				}
+            }
+        }
+
 	}
 }

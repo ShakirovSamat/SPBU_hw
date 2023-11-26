@@ -1,17 +1,15 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace MyNUnit.Attributes
+﻿namespace MyNUnit.Attributes
 {
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public class TestAttribute : Attribute
 	{
-		public object? Expected { get; private set; }
+		public Type? Expected { get; private set; }
 
 		public string? Ignore { get; private set; }
 
 		public TestAttribute() { }
 
-		public TestAttribute(object expected)
+		public TestAttribute(Type expected)
 		{
 			Expected = expected;
 		}
@@ -21,7 +19,7 @@ namespace MyNUnit.Attributes
 			Ignore = ignore;
 		}
 
-		public TestAttribute(object? expected, string? ignore)
+		public TestAttribute(Type? expected, string? ignore)
 		{
 			Expected = expected;
 			Ignore = ignore;
