@@ -1,28 +1,35 @@
 ﻿using MyNUnit.Attributes;
+using MyNUnit.Information;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace MyNUnit
 {
-	public static class TestRunner
+    public static class TestRunner
 	{
-		public static List<MethodInforamtion> Results = new List<MethodInforamtion>();
-		public static AssemblyInformation RunTests(Assembly assembly)
+		public static List<MethodInformation> Results = new List<MethodInformation>();
+		public static async Task<AssemblyInformation> RunTests(Assembly assembly)
 		{
 			var result = new AssemblyInformation(assembly.FullName);
+			var tasks = new List<Task<ClassInformation>>();
 			foreach (Type type in assembly.GetTypes())
 			{
 				if (type.IsClass && ContainsTestMethods(type))
 				{
-					result.classInformations.Add(ClassTest(type));
+					tasks.Add(Task.Run(() => ClassTest(type)));
 				}
+			}
+
+			foreach(var task in tasks)
+			{
+				result.classInformations.Add(await task);
 			}
 			return result;
 		}
 
 
-		private static ClassInformation ClassTest(Type type)
+		private static async Task<ClassInformation> ClassTest(Type type)
 		{
 			var result = new ClassInformation(type.FullName);
 			var storage = new MethodsStorage();
@@ -35,27 +42,62 @@ namespace MyNUnit
 
 			foreach(var beforeClassMethod in storage.BeforeClassMethods)
 			{
-				beforeClassMethod.Invoke(null, null);
+				try
+				{
+					beforeClassMethod.Invoke(null, null);
+				}
+				catch (Exception e)
+				{
+					return new ClassInformation(type.FullName, "BeforeClass method had thrown exception. Method name: " + beforeClassMethod.Name + "", e);
+				}
 			}
 
+			var tasks = new List<Task<MethodInformation>>();
 			foreach(var testMethod in storage.TestMethods)
 			{
-				result.methodInformations.Add(MethodTest(instace, testMethod.method, testMethod.expected, storage.BeforerMethods, storage.AfterMethods));
+				if (testMethod.Ignore != null)
+				{
+					result.methodInformations.Add(new MethodInformation(testMethod.method.Name, 0, "Was ignored. Ignore message: " + testMethod.Ignore, true));
+				}
+				else
+				{
+					tasks.Add(Task.Run(() => MethodTest(instace, testMethod.method, testMethod.expected, storage.BeforerMethods, storage.AfterMethods)));
+				}
+			}
+
+			foreach (var task in tasks)
+			{
+				result.methodInformations.Add(await task);
 			}
 
 			foreach (var afterClassMethod in storage.AfterClassMethods)
 			{
-				afterClassMethod.Invoke(null, null);
+				try
+				{
+					afterClassMethod.Invoke(null, null);
+				}
+				catch (Exception e)
+				{
+					return new ClassInformation(type.FullName, "AfterClass method had thrown exception. Method name: " + afterClassMethod.Name + "", e);
+				}
 			}
 
 			return result;
 		}
 
-		private static MethodInforamtion MethodTest(object instance, MethodInfo methodInfo, Type? expected, List<MethodInfo> before, List<MethodInfo> after)
+		private static async Task<MethodInformation> MethodTest(object instance, MethodInfo methodInfo, Type? expected, List<MethodInfo> before, List<MethodInfo> after)
 		{
+			MethodInformation methodInformation = null;
 			foreach(var method in before)
 			{
-				method.Invoke(instance, null);
+				try
+				{
+					method.Invoke(instance, null);
+				}
+				catch(Exception e)
+				{
+					return new MethodInformation(methodInfo.Name, 0, "Before method had trown exception. Method name: " + method.Name +"", false, e);
+				}
 			}
 
 			bool isCaught = false;
@@ -63,7 +105,7 @@ namespace MyNUnit
 			sw.Start();
 			try
 			{
-				var result = methodInfo.Invoke(instance, null);				
+				 var result =  methodInfo.Invoke(instance, null);				
 			}
 			catch(Exception e)
 			{
@@ -71,22 +113,34 @@ namespace MyNUnit
 				if (e.InnerException!.GetType() != expected || expected == null)
 				{
 					sw.Stop();
-					return new MethodInforamtion(methodInfo.Name, sw.ElapsedMilliseconds, "Other exception was thrown", e);
+					methodInformation =  new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "Other exception was thrown", false, e);
 				}
 			}
 
 			sw.Stop();
 			if (!isCaught && expected != null)
 			{
-				return new MethodInforamtion(methodInfo.Name, sw.ElapsedMilliseconds, "The expected exception wasn't trown");
+				methodInformation =  new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "The expected exception wasn't trown", false);
 			}
 
 			foreach (var method in after)
 			{
-				method.Invoke(instance, null);
+				try
+				{
+					method.Invoke(instance, null);
+				}
+				catch (Exception e)
+				{
+					return new MethodInformation(methodInfo.Name, 0, "After method had trown exception. Method name: " + method.Name +"", false, e);
+						
+				}
+			}
+			if (methodInfo != null)
+			{
+				methodInformation = new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "Succeed", true);
 			}
 
-			return new MethodInforamtion(methodInfo.Name, sw.ElapsedMilliseconds, "Succeed");
+			return methodInformation;
 		}
 
 		private static bool ContainsTestMethods(Type type)
@@ -116,7 +170,7 @@ namespace MyNUnit
 	}
 	public class MethodsStorage
 	{
-		public List<(MethodInfo method, Type? expected)> TestMethods { get; set; }
+		public List<(MethodInfo method, Type? expected, string? Ignore)> TestMethods { get; set; }
 		public List<MethodInfo> BeforerMethods { get; set; }
 		public List<MethodInfo> AfterMethods { get; set; }
 		public List<MethodInfo> BeforeClassMethods { get; set; }
@@ -124,7 +178,7 @@ namespace MyNUnit
 
 		public MethodsStorage()
 		{
-			TestMethods = new List<(MethodInfo, Type?)>();
+			TestMethods = new List<(MethodInfo, Type?, string?)>();
 			BeforerMethods = new List<MethodInfo>();
 			AfterMethods = new List<MethodInfo>();
 			BeforeClassMethods = new List<MethodInfo>();
@@ -169,7 +223,7 @@ namespace MyNUnit
 				switch (type)
 				{
 					case (TargetAttributes.Test):
-						TestMethods.Add((method, (attribute as TestAttribute).Expected));
+						TestMethods.Add((method, (attribute as TestAttribute).Expected, (attribute as TestAttribute).Ignore));
 						break;
 					case (TargetAttributes.Before):
 						BeforerMethods.Add(method);
