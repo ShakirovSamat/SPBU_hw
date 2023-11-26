@@ -1,16 +1,30 @@
-name: "csharp"
-
-on: [push, pull_request]
+name: C# build and test
+on: 
+  push:
+    paths-ignore:
+      - '.github/workflows/**'
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - '.github/workflows/**'
+      - 'README.md'
 
 jobs:
-  build-Windows:
-    runs-on: Windows-latest
+  test-Windows:  
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.x'
-      - name: Build
-        run: $slnInList = Get-ChildItem -Recurse -Filter '*.sln'; foreach ($file in $slnInList) {dotnet build $file.FullName}
-      - name: Run tests
-        run: $slnInList = Get-ChildItem -Recurse -Filter '*.sln'; foreach ($file in $slnInList) {dotnet test $file.FullName}
+        
+      - name: Lint
+        run: Get-ChildItem -Path . -Filter *.sln -Recurse | ForEach-Object { dotnet format $_.FullName }
+        
+      - name: Build Solutions
+        run: Get-ChildItem -Path . -Filter *.sln -Recurse | ForEach-Object { dotnet build $_.FullName }
+        
+      - name: Run Tests
+        run: Get-ChildItem -Path . -Filter *.sln -Recurse | ForEach-Object { dotnet test $_.FullName }
+  
