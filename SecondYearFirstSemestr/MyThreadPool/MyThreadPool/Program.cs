@@ -1,14 +1,10 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Xml.Schema;
-
-namespace ThreadPool
+﻿namespace ThreadPool
 {
-    class Program
-    {
-        public static void Main(string[] args)
-        {
-        }
-    }
+	public class Program
+	{
+		public static void Main(String[] args)
+		{
 
+		}
+	}
 }

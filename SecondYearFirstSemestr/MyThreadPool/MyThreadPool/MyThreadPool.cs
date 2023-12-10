@@ -1,22 +1,25 @@
 ﻿using ThreadPool.Exceptions;
 using System.Collections.Concurrent;
+using System;
 
 namespace ThreadPool
 {
     public class MyThreadPool
     {
-        private BlockingCollection<Action> tasks;
-        private MyThread[] threads;
+        private ConcurrentQueue<Action> tasks;
+        private Thread[] threads;
+        private AutoResetEvent taskOver;
         private CancellationTokenSource cancellationTokenSource;
 
         public MyThreadPool()
         {
-            tasks = new BlockingCollection<Action>();
-            threads = new MyThread[Environment.ProcessorCount];
+            tasks = new ConcurrentQueue<Action>();
+            threads = new Thread[Environment.ProcessorCount];
             cancellationTokenSource = new CancellationTokenSource();
             for (int i = 0; i < Environment.ProcessorCount; ++i)
             {
-                threads[i] = new MyThread(tasks, cancellationTokenSource.Token);
+                threads[i] = new Thread(() => Start());
+                threads[i].Start();
             }
         }
 
@@ -33,8 +36,9 @@ namespace ThreadPool
                 throw new ShutDownedException();
             }
 
-            var task = new MyTask<TResult>(func, tasks, cancellationTokenSource.Token);
-            tasks.Add(() => task.Start());
+            var task = new MyTask<TResult>(this, func, tasks, cancellationTokenSource.Token);
+            tasks.Enqueue(() => task.Start());
+
             return task;
         }
 
@@ -51,60 +55,30 @@ namespace ThreadPool
             }
         }
 
+		private void Start()
+		{
+			while (true)
+			{
+				if (tasks.TryDequeue(out var task))
+				{
+					task();
+				}
+				else if (cancellationTokenSource.IsCancellationRequested)
+				{
+					break;
+				}
+			}
+		}
 
-        private class MyThread
+
+		private class MyTask<TResult> : IMyTask<TResult>
         {
-            private Thread thread;
-            private BlockingCollection<Action> actions;
-            private CancellationToken token;
-
-            public MyThread(BlockingCollection<Action> actions, CancellationToken token)
-            {
-                this.token = token;
-                this.actions = actions;
-                thread = new Thread(() => this.Start());
-                thread.Start();
-            }
-
-            /// <summary>
-            /// Joins thread
-            /// </summary>
-            public void Join()
-            {
-                thread.Join();
-            }
-
-            /// <summary>
-            /// puts the thread to work
-            /// </summary>
-            private void Start()
-            {
-                while (true)
-                {
-                    if (actions.TryTake(out var action))
-                    {
-                        IsWorking = true;
-                        action();
-                        IsWorking = false;
-                    }
-                    else if (token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            public bool IsWorking { get; set; }
-        }
-
-
-        private class MyTask<TResult> : IMyTask<TResult>
-        {
+            private MyThreadPool pool;
             private Exception exception;
             private TResult result;
-            private BlockingCollection<Action> tasks;
+            private ConcurrentQueue<Action> tasks;
             private ManualResetEvent resetEvent = new ManualResetEvent(false);
-            private BlockingCollection<Action> continuedTaks;
+            private ConcurrentQueue<Action> continuedTaks;
             private CancellationToken token;
 
             public bool IsCompleted { get; private set; }
@@ -126,12 +100,13 @@ namespace ThreadPool
 
             public Func<TResult> Func { get; }
 
-            public MyTask(Func<TResult> func, BlockingCollection<Action> tasks, CancellationToken token)
+            public MyTask(MyThreadPool pool, Func<TResult> func, ConcurrentQueue<Action> tasks, CancellationToken token)
             {
+                this.pool = pool;
                 IsCompleted = false;
                 Func = func;
                 this.tasks = tasks;
-                continuedTaks = new BlockingCollection<Action>();
+                continuedTaks = new ConcurrentQueue<Action>();
                 this.token = token;
             }
 
@@ -155,7 +130,7 @@ namespace ThreadPool
 
                 foreach (var continuedTask in continuedTaks)
                 {
-                    tasks.Add(continuedTask);
+                   tasks.Enqueue(continuedTask);
                 }
             }
 
@@ -171,14 +146,14 @@ namespace ThreadPool
                     throw new ShutDownedException();
                 }
 
-                var task = new MyTask<TNewResult>(() => func(Result), tasks, token);
+                var task = new MyTask<TNewResult>(pool, () => func(Result), tasks, token);
                 if (IsCompleted)
                 {
-                    tasks.Add(() => task.Start());
+                    pool.AddTask(() => func(Result));
                     return task;
                 }
 
-                continuedTaks.Add(() => task.Start());
+                continuedTaks.Enqueue(() => task.Start());
                 return task;
             }
         }

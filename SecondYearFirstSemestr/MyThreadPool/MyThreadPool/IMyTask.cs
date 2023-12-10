@@ -9,7 +9,5 @@
         public Func<TResult> Func { get; }
 
         public IMyTask<TNewResult> ContinueWith<TNewResult>(Func<TResult, TNewResult> func);
-
-
     }
 }
