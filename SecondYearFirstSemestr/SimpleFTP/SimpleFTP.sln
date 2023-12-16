@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleFTP", "SimpleFTP\SimpleFTP.csproj", "{E0A0CB2F-9EAF-4979-B6C1-350236A17EC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{973AEC8B-3696-475D-B1D1-B9ACC238D779}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E0A0CB2F-9EAF-4979-B6C1-350236A17EC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0A0CB2F-9EAF-4979-B6C1-350236A17EC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0A0CB2F-9EAF-4979-B6C1-350236A17EC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0A0CB2F-9EAF-4979-B6C1-350236A17EC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{973AEC8B-3696-475D-B1D1-B9ACC238D779}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{973AEC8B-3696-475D-B1D1-B9ACC238D779}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{973AEC8B-3696-475D-B1D1-B9ACC238D779}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{973AEC8B-3696-475D-B1D1-B9ACC238D779}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2540BF94-2F96-4208-8D77-4DFB26C5CC67}
+	EndGlobalSection
+EndGlobal
