@@ -16,7 +16,7 @@ namespace SimpleFTP
 		}
 
 
-		public async void ConnectToAsync(string address, int port)
+		public async Task ConnectToAsync(string address, int port)
 		{
 			try
 			{
@@ -24,6 +24,7 @@ namespace SimpleFTP
 			}
 			catch (SocketException ex)
 			{
+				Console.WriteLine("Неверный ip адресс или порт");
 				Console.WriteLine("Неверный ip адресс или порт");
 			}
 

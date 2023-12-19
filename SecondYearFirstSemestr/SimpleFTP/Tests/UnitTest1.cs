@@ -12,12 +12,12 @@ namespace Tests
 		Client client;
 
 		[SetUp]
-		public void Setup()
+		public async Task Setup()
 		{
 			server = new Server("127.00.00.01", 8888);
 			server.Start();
 			client = new Client();
-			client.ConnectToAsync("127.00.00.01", 8888);
+			await client.ConnectToAsync("127.00.00.01", 8888);
 		}
 
 		[Test]
