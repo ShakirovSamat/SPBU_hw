@@ -1,0 +1,90 @@
+﻿@page
+@model MyNUnitWeb.Pages.IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<title>MyNUnitWeb</title>
+	<link rel="stylesheet" href="/css/site.css" />
+	<link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css" />
+	<script src="/js/site.js"></script>
+</head>
+<body>
+	<div class="text-center">
+		<form method="post" enctype="multipart/form-data" class="mb-3">
+			<label for="formFileMultiple" class="form-label">Добавьте файлы сборок для тестирования</label>
+			<input asp-for="Files" class="form-control" type="file" multiple accept=".dll">
+			<button type="submit" class="btn btn-primary">Start</button>
+		</form>
+	</div>
+
+	@{
+		if (Model.AssembliesData.Count > 0)
+		{
+			<div>
+				<table class="table text-center">
+					<thead>
+						<tr>
+							<th>Assembly name</th>
+							<th>Succed amount</th>
+							<th>Failed amount</th>
+							<th>Ignore amount</th>
+							<th>Total amount</th>
+						</tr>
+					</thead>
+					<tbody>
+						@{
+							var p = Model.AssembliesData[Model.AssembliesData.Count - 1];
+							{							
+								<tr>
+									<td>@p.Name</td>
+									<td>@p.AmountOfSucceedTests</td>
+									<td>@p.AmountOfFailTests</td>
+									<td>@p.AmountOfIgnoredTests</td>
+									<td>@p.AmountOfTest</td>								
+								</tr>
+							}
+						}
+					</tbody>
+			</div>
+		}
+	}
+
+	<h2 class="text-center">List of conference participants:</h2>
+	<table class="table text-center">
+		<thead>
+			<tr>
+				<th>Assembly name</th>
+				<th>Succed amount</th>
+				<th>Failed amount</th>
+				<th>Ignore amount</th>
+				<th>Total amount</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (MyNUnitWeb.Data.AssemblyData p in Model.AssembliesData)
+			{
+				<tr>
+					<td>@p.Name</td>
+					<td>@p.AmountOfSucceedTests</td>
+					<td>@p.AmountOfFailTests</td>
+					<td>@p.AmountOfIgnoredTests</td>
+					<td>@p.AmountOfTest</td>
+					@{
+						if (p.MethodDatas != null)
+						{
+							foreach (var method in p.MethodDatas)
+							{
+								<td>method.Name</td>
+							}
+						}
+					}
+				</tr>
+			}
+		</tbody>
+	</table>
+</body>
+</html>
