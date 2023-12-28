@@ -1,15 +1,16 @@
 ﻿using MyNUnit;
 using System.Reflection;
+
 class Program
 {
 	public static void Main(String[] args)
 	{
-		string path = string.Empty;
+		string assemblyPath = string.Empty;
 		while (true)
 		{
 			Console.WriteLine("Введите полный путь папки, в которой хранятся сборки.");
-			path = Console.ReadLine();
-			if (Directory.Exists(path))
+			assemblyPath = Console.ReadLine();
+			if (Directory.Exists(assemblyPath))
 			{
 				break;
 			}
@@ -17,11 +18,11 @@ class Program
 			Console.WriteLine("Папка не существет. Попробуйте ввести другой путь.");
 		}
 
-		string[] paths = Directory.GetFiles(path, "*.dll");
-		foreach(var pathh in paths)
+		string[] paths = Directory.GetFiles(assemblyPath, "*.dll");
+		foreach (var path in paths)
 		{
-			var result = TestRunner.RunTests(Assembly.LoadFrom(pathh)).Result;
+			var result = TestRunner.RunTests(Assembly.LoadFrom(path)).Result;
 			Console.WriteLine(result.ToString());
-        }
+		}
 	}
 }

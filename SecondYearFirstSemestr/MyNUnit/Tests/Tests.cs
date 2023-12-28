@@ -35,7 +35,7 @@ namespace MyNUnit
 		[Before]
 		public static void Do()
 		{
-
+			Console.WriteLine("Dp before method");
 		}
 
 		[Attributes.Test]
@@ -44,6 +44,7 @@ namespace MyNUnit
 			return 6;
 		}
 	}
+
 	public class BadTestWithBeforeAttribute
 	{
 		[Before]
@@ -64,7 +65,7 @@ namespace MyNUnit
 		[After]
 		public static void Do()
 		{
-
+			Console.WriteLine("Do ater method");
 		}
 
 		[Attributes.Test]
@@ -88,12 +89,12 @@ namespace MyNUnit
 		}
 	}
 
-	public class TestWithBeforeClassAttr
+	public class TestWithBeforeClassAttribute
 	{
 		[BeforeClass]
 		public static void Do()
 		{
-
+			Console.WriteLine("Do before class method");
 		}
 
 		[Attributes.Test]
@@ -103,7 +104,7 @@ namespace MyNUnit
 		}
 	}
 
-	public class BadTestWithBeforeClassAttr
+	public class BadTestWithBeforeClassAttribute
 	{
 		[BeforeClass]
 		public static void Do()
@@ -118,12 +119,12 @@ namespace MyNUnit
 		}
 	}
 
-	public class TestWithAfterClassAttr
+	public class TestWithAfterClassAttribute
 	{
 		[AfterClass]
 		public static void Do()
 		{
-
+			Console.WriteLine("Do after class method");
 		}
 
 		[Attributes.Test]
@@ -133,7 +134,7 @@ namespace MyNUnit
 		}
 	}
 
-	public class BadTestWithAfterClassAttr
+	public class BadTestWithAfterClassAttrribute
 	{
 		[AfterClass]
 		public static void Do()

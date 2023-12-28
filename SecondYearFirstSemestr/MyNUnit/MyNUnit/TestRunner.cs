@@ -12,12 +12,13 @@ namespace MyNUnit
 		After,
 		BeforeClass,
 		AfterClass,
-		Undefiend,
+		Undefined,
 	}
 
 	public static class TestRunner
 	{
 		public static List<MethodInformation> Results = new List<MethodInformation>();
+
 		public static async Task<AssemblyInformation> RunTests(Assembly assembly)
 		{
 			var result = new AssemblyInformation(assembly.FullName);
@@ -30,7 +31,7 @@ namespace MyNUnit
 				}
 			}
 
-			foreach(var task in tasks)
+			foreach (var task in tasks)
 			{
 				result.classInformations.Add(await task);
 			}
@@ -43,14 +44,14 @@ namespace MyNUnit
 		{
 			var result = new ClassInformation(type.FullName);
 			var storage = new MethodsStorage();
-			var instace = Activator.CreateInstance(type);
+			var instance = Activator.CreateInstance(type);
 
 			foreach (var method in type.GetMethods())
 			{
 				storage.DistributeMethod(method);
 			}
 
-			foreach(var beforeClassMethod in storage.BeforeClassMethods)
+			foreach (var beforeClassMethod in storage.BeforeClassMethods)
 			{
 				try
 				{
@@ -63,7 +64,7 @@ namespace MyNUnit
 			}
 
 			var tasks = new List<Task<MethodInformation>>();
-			foreach(var testMethod in storage.TestMethods)
+			foreach (var testMethod in storage.TestMethods)
 			{
 				if (testMethod.Ignore != null)
 				{
@@ -71,7 +72,7 @@ namespace MyNUnit
 				}
 				else
 				{
-					tasks.Add(Task.Run(() => MethodTest(instace, testMethod.method, testMethod.expected, storage.BeforerMethods, storage.AfterMethods)));
+					tasks.Add(Task.Run(() => MethodTest(instance, testMethod.method, testMethod.expected, storage.BeforeMethods, storage.AfterMethods)));
 				}
 			}
 
@@ -95,18 +96,18 @@ namespace MyNUnit
 			return result;
 		}
 
-		private static async Task<MethodInformation> MethodTest(object instance, MethodInfo methodInfo, Type? expected, List<MethodInfo> before, List<MethodInfo> after)
+		private static async Task<MethodInformation> MethodTest(object instance, MethodInfo methodInfo, Type? expected, List<MethodInfo> beforeMethods, List<MethodInfo> afterMethods)
 		{
 			MethodInformation methodInformation = null;
-			foreach(var method in before)
+			foreach (var method in beforeMethods)
 			{
 				try
 				{
 					method.Invoke(instance, null);
 				}
-				catch(Exception e)
+				catch (Exception e)
 				{
-					return new MethodInformation(methodInfo.Name, 0, "Before method had trown exception. Method name: " + method.Name +"", false, e);
+					return new MethodInformation(methodInfo.Name, 0, "Before method had trown exception. Method name: " + method.Name + "", false, e);
 				}
 			}
 
@@ -115,25 +116,25 @@ namespace MyNUnit
 			sw.Start();
 			try
 			{
-				 var result =  methodInfo.Invoke(instance, null);				
+				var result = methodInfo.Invoke(instance, null);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				isCaught = true;
 				if (e.InnerException!.GetType() != expected || expected == null)
 				{
 					sw.Stop();
-					methodInformation =  new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "Other exception was thrown", false, e);
+					methodInformation = new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "Other exception was thrown", false, e);
 				}
 			}
 
 			sw.Stop();
 			if (!isCaught && expected != null)
 			{
-				methodInformation =  new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "The expected exception wasn't trown", false);
+				methodInformation = new MethodInformation(methodInfo.Name, sw.ElapsedMilliseconds, "The expected exception wasn't trown", false);
 			}
 
-			foreach (var method in after)
+			foreach (var method in afterMethods)
 			{
 				try
 				{
@@ -141,8 +142,8 @@ namespace MyNUnit
 				}
 				catch (Exception e)
 				{
-					return new MethodInformation(methodInfo.Name, 0, "After method had trown exception. Method name: " + method.Name +"", false, e);
-						
+					return new MethodInformation(methodInfo.Name, 0, "After method had trown exception. Method name: " + method.Name + "", false, e);
+
 				}
 			}
 
@@ -175,7 +176,7 @@ namespace MyNUnit
 	{
 		public List<(MethodInfo method, Type? expected, string? Ignore)> TestMethods { get; set; }
 
-		public List<MethodInfo> BeforerMethods { get; set; }
+		public List<MethodInfo> BeforeMethods { get; set; }
 
 		public List<MethodInfo> AfterMethods { get; set; }
 
@@ -186,7 +187,7 @@ namespace MyNUnit
 		public MethodsStorage()
 		{
 			TestMethods = new List<(MethodInfo, Type?, string?)>();
-			BeforerMethods = new List<MethodInfo>();
+			BeforeMethods = new List<MethodInfo>();
 			AfterMethods = new List<MethodInfo>();
 			BeforeClassMethods = new List<MethodInfo>();
 			AfterClassMethods = new List<MethodInfo>();
@@ -220,8 +221,9 @@ namespace MyNUnit
 				return TargetAttributes.AfterClass;
 			}
 
-			return TargetAttributes.Undefiend;
+			return TargetAttributes.Undefined;
 		}
+
 		public void DistributeMethod(MethodInfo method)
 		{
 			foreach (var attribute in method.GetCustomAttributes())
@@ -233,7 +235,7 @@ namespace MyNUnit
 						TestMethods.Add((method, (attribute as TestAttribute).Expected, (attribute as TestAttribute).Ignore));
 						break;
 					case (TargetAttributes.Before):
-						BeforerMethods.Add(method);
+						BeforeMethods.Add(method);
 						break;
 					case (TargetAttributes.After):
 						AfterMethods.Add(method);

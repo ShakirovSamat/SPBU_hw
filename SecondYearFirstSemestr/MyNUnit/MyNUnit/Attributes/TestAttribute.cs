@@ -1,5 +1,8 @@
 ﻿namespace MyNUnit.Attributes
 {
+	/// <summary>
+	/// Помечает тестируемый метод
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public class TestAttribute : Attribute
 	{

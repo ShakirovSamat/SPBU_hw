@@ -30,15 +30,7 @@ namespace MyNUnit.Information
 		{
 			var builder = new StringBuilder();
 			builder.Append("\t\tMethod: " + Name + "\n");
-			if (Succeed)
-			{
-				builder.Append("\t\t\tState: Succeed\n");
-			}
-			else
-			{
-				builder.Append("\t\t\tState: Failed\n");
-			}
-
+			builder.Append(Succeed ? "\t\t\tState: Succeed\n" : "\t\t\tState: Failed\n");
 			builder.Append("\t\t\t Time: " + Time + "\n");
 			builder.Append("\t\t\t Message: " + Message + "\n");
 			if (Exception != null)
