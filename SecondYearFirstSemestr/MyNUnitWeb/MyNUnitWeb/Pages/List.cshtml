@@ -1,0 +1,42 @@
+﻿@page
+@model MyNUnitWeb.Pages.ListModel
+@{
+}
+<html>
+<head>
+	<meta name="viewport" content="width=device-width" />	
+	<title>ListParticipants</title>
+</head>
+<body>
+	<h2>List of conference participants:</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>Succed amount</th>	
+				<th>Failed amount</th>
+				<th>Ignore amount</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (MyNUnitWeb.Data.AssemblyData p in Model.AssembliesData) {
+			<tr>
+				<td>@p.Name</td>
+				<td>@p.AmountOfSucceedTests</td>
+				<td>@p.AmountOfFailTests</td>
+				<td>@p.AmountOfIgnoredTests</td>
+				<td>@p.AmountOfTest</td>
+					@{
+						if (p.MethodDatas != null)
+						{
+							foreach (var method in p.MethodDatas)
+							{
+								<td>method.Name</td>
+							}
+						}
+					}
+			</tr>
+			}
+		</tbody>
+	</table>
+</body>
+</html
